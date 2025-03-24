@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Todo List</title>
+    <style>
+        /* Основные стили */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #4CAF50;
+        }
+
+        /* Стили для формы */
+        #todoForm {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        #todoInput {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #4CAF50;
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        #todoInput:focus {
+            border-color: #45a049;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        /* Стили для списка */
+        #todoList {
+            list-style: none;
+            padding: 0;
+        }
+
+        .todo-item {
+            background-color: #fafafa;
+            padding: 12px;
+            margin-bottom: 8px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.2s;
+        }
+
+        .todo-item .done {
+            text-decoration: line-through;
+            color: #aaa;
+        }
+
+        .done-btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 6px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .done-btn:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Todo List</h1>
+
+    <!-- Форма для добавления нового задания -->
+    <form id="todoForm">
+        <input type="text" id="todoInput" placeholder="Добавить задание..." required />
+        <button type="submit">Добавить</button>
+    </form>
+
+    <!-- Список заданий -->
+    <ul id="todoList"></ul>
+</div>
+
+<script>
+    const apiUrl = '/todos/';
+
+    // Получение списка заданий
+    async function fetchTodos() {
+        const response = await fetch(apiUrl);
+        const todos = await response.json();
+
+        const todoList = document.getElementById('todoList');
+        todoList.innerHTML = '';
+
+        todos.forEach((todo, index) => {
+            const li = document.createElement('li');
+            li.classList.add('todo-item');
+            li.innerHTML = `
+                    <span class="${todo.done ? 'done' : ''}">${todo.name}</span>
+                    ${
+                !todo.done
+                    ? `<button class="done-btn" onclick="markTodoDone(${index})">✔️</button>`
+                    : ''
+            }
+                `;
+            todoList.appendChild(li);
+        });
+    }
+
+    // Добавление нового задания
+    async function addTodo(event) {
+        event.preventDefault();
+
+        const todoInput = document.getElementById('todoInput');
+        const todoText = todoInput.value.trim();
+
+        if (todoText) {
+            await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: todoText, done: false }),
+            });
+
+            todoInput.value = '';
+            fetchTodos();
+        }
+    }
+
+    // Пометка задания как выполненного
+    async function markTodoDone(index) {
+        await fetch(`${apiUrl}${index}`, {
+            method: 'PUT',
+        });
+
+        fetchTodos();
+    }
+
+    // Подключаем обработчики событий
+    document.getElementById('todoForm').addEventListener('submit', addTodo);
+
+    // Получаем задания при загрузке страницы
+    fetchTodos();
+</script>
+</body>
+</html>

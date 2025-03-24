@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jokes WebSocket</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 50px;
+    }
+    h1 {
+      color: #007bff;
+    }
+    #jokes {
+      width: 80%;
+      max-width: 600px;
+      border: 1px solid #ddd;
+      padding: 10px;
+      background-color: #fff;
+      height: 300px;
+      overflow-y: auto;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .joke {
+      padding: 8px;
+      border-bottom: 1px solid #eee;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Chuck Norris Jokes 🤣</h1>
+<div id="jokes"></div>
+
+<script>
+  const jokesContainer = document.getElementById('jokes');
+  const socket = new WebSocket('ws://localhost:8081/');
+
+  socket.addEventListener('open', () => {
+    console.log('Connected to the server');
+  });
+
+  socket.addEventListener('message', (event) => {
+    const joke = document.createElement('div');
+    joke.className = 'joke';
+    joke.textContent = event.data;
+
+    // Добавляем шутку в начало списка
+    jokesContainer.prepend(joke);
+
+    // Очищаем лишние шутки (оставляем только последние 20)
+    if (jokesContainer.children.length > 20) {
+      jokesContainer.removeChild(jokesContainer.lastChild);
+    }
+  });
+
+  socket.addEventListener('close', () => {
+    console.log('Disconnected from the server');
+  });
+
+  socket.addEventListener('error', (error) => {
+    console.error('WebSocket Error:', error);
+  });
+</script>
+
+</body>
+</html>
